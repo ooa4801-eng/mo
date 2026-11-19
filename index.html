@@ -121,10 +121,10 @@ async function gen(share){const m=$('msg');m.textContent='';const p=PR[$('pr').v
   const pdf=new jspdf.jsPDF({unit:'mm',format:'a4'});const PG=[];
   for(const el of st.children){const cv=await html2canvas(el,{scale:2,backgroundColor:'#fff'});const ph=Math.round(cv.width*1123/794),T=72,B=76,u=ph-T-B;
    for(let y=0;y<cv.height-4||y==0;y+=u){const h=Math.min(u,cv.height-y),c2=document.createElement('canvas');c2.width=cv.width;c2.height=ph;const x=c2.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c2.width,ph);x.drawImage(cv,0,y,cv.width,h,0,T,cv.width,h);PG.push(c2)}}
-  PG.forEach((c2,i)=>{const x=c2.getContext('2d'),w=c2.width,H=c2.height;x.fillStyle='#667085';x.strokeStyle='#c5cad4';x.lineWidth=2;x.font='600 22px Cairo, Arial';x.direction='ltr';
-   x.textAlign='left';x.fillText('Document Control Department',60,44);x.textAlign='right';x.fillText('MR/ABDELRAHMAN-NASSER',w-60,44);x.beginPath();x.moveTo(60,58);x.lineTo(w-60,58);x.stroke();
-   x.beginPath();x.moveTo(60,H-58);x.lineTo(w-60,H-58);x.stroke();x.textAlign='left';x.fillText('Document Control Department | MR/ABDELRAHMAN-NASSER',60,H-24);x.textAlign='right';x.fillText('Page '+(i+1)+' / '+PG.length,w-60,H-24);
-   if(i)pdf.addPage();pdf.addImage(c2.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)});
+  PG.forEach((c2,i)=>{if(i)pdf.addPage();pdf.addImage(c2.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297);
+   pdf.setFont('helvetica','bold');pdf.setFontSize(10);pdf.setTextColor(40,50,70);pdf.setDrawColor(120,130,150);pdf.setLineWidth(.3);
+   pdf.text('Document Control Department',10,6.5,{align:'left'});pdf.text('MR/ABDELRAHMAN-NASSER',200,6.5,{align:'right'});pdf.line(10,8.3,200,8.3);
+   pdf.line(10,288.6,200,288.6);pdf.text('Document Control Department | MR/ABDELRAHMAN-NASSER',10,293.5,{align:'left'});pdf.text('Page '+(i+1)+' / '+PG.length,200,293.5,{align:'right'})});
   const name=`الموقف التنفيذي - ${$('ct').value.trim()} - ${$('dt').value}.pdf`,blob=pdf.output('blob');
   try{const a=JSON.parse(localStorage.getItem('ct')||'[]'),c=$('ct').value.trim();if(!a.includes(c)){a.push(c);localStorage.setItem('ct',JSON.stringify(a))}}catch(e){}
   m.textContent='';let done=false;
