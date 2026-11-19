@@ -49,12 +49,13 @@ button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid var(--line
 <div class="card"><h2>بيانات الموقف</h2><div class="g">
 <div class="w"><label>المشروع</label><select id="pr"></select></div>
 <div class="w" id="lw"><label id="ll">المكان / القطعة</label><input id="lc"></div>
-<div class="w"><label>المقاول</label><input id="ct" list="cl" placeholder="اسم المقاول"><datalist id="cl"></datalist></div>
+<div class="w"><label>المقاول / شركة الخرسانة</label><input id="ct" list="cl" placeholder="الاسم"><datalist id="cl"></datalist></div><div class="w"><label>نوع الموقف</label><select id="ty" onchange="tyc()"><option value="w">موقف أعمال</option><option value="c">موقف خرسانة (مكان الصب والإجهاد والكمية والمكعبات)</option></select></div>
 <div><label>التاريخ</label><input type="date" id="dt"></div>
 <div><label>حركة المستخلص</label><select id="mv"><option value="">اختر الحركة</option><option>حركة 10</option><option>حركة 25</option></select></div>
 <div class="w"><label>شهر المستخلص</label><input type="month" id="mo"></div>
 </div></div>
-<div class="card"><h2>الأعمال المنفذة</h2><div id="ws"></div><button onclick="addW()">+ إضافة عمل</button></div>
+<div class="card" id="wc"><h2>الأعمال المنفذة</h2><div id="ws"></div><button onclick="addW()">+ إضافة عمل</button></div>
+<div class="card" id="cc" style="display:none"><h2>بيان الصب</h2><div id="cs"></div><button onclick="addC()">+ إضافة صبة</button><p id="ctot" style="margin:10px 0 0;font-weight:700"></p><datalist id="sl"><option>250<option>300<option>350<option>400<option>450</datalist></div>
 <div class="card"><h2>بيان المعدات (اختياري)</h2><div class="g">
 <div><label>من</label><input type="date" id="ef" onchange="rEq()"></div><div><label>إلى</label><input type="date" id="et" onchange="rEq()"></div>
 <div class="w" style="display:flex;gap:8px"><input id="en" list="el" placeholder="اسم المعدة"><datalist id="el"><option>لودر 40<option>لودر 936<option>حفار<option>ونش<option>بوكلين<option>خلاطة خرسانة</datalist><button onclick="addE()" style="white-space:nowrap">إضافة معدة</button></div></div>
@@ -94,12 +95,18 @@ function tot(){EN.forEach((n,j)=>{const r=eqT(n);const e=$('t'+j);if(e)e.textCon
 function eqT(n){let d=0,h=0;Object.keys(M).forEach(k=>{if(k.split('|')[1]!=n)return;const v=M[k];if(v.s=='1')d+=1;else if(v.s=='0.5')d+=.5;else if(v.s=='h')h+=+v.h||0});return(d?d+' يوم':'')+(d&&h?' + ':'')+(h?h+' ساعة':'')||'—'}
 $('eg').addEventListener('change',e=>{const k=e.target.dataset.k;if(!k)return;M[k]={s:e.target.value,h:(M[k]||{}).h||''};e.target.nextElementSibling.style.display=e.target.value=='h'?'block':'none';tot()});
 $('eg').addEventListener('input',e=>{const k=e.target.dataset.h;if(!k)return;M[k]={s:'h',h:e.target.value};tot()});
-rEq();addW();
+function tyc(){const c=$('ty').value=='c';$('wc').style.display=c?'none':'';$('cc').style.display=c?'':'none'}
+const sm=(r,s)=>+r.reduce((a,x)=>a+(+x.querySelector(s).value||0),0).toFixed(2);
+function ctt(){const r=[...document.querySelectorAll('.cr')];$('ctot').textContent='الإجمالي: '+sm(r,'.qt')+' م³ — '+sm(r,'.cu')+' مكعب'}
+function addC(){const d=document.createElement('div');d.className='wr';d.classList.add('cr');d.innerHTML='<input class="pl d" placeholder="مكان الصب (مثال: أعمدة الدور الأول محور 1 إلى 5)"><input class="st" list="sl" inputmode="numeric" placeholder="الإجهاد (كجم/سم²)"><input class="qt" type="number" min="0" step="0.25" placeholder="الكمية (م³)"><input class="cu" type="number" min="0" placeholder="عدد المكعبات"><div class="x"><button onclick="this.closest(\'.cr\').remove();ctt()">حذف</button></div>';d.addEventListener('input',ctt);$('cs').appendChild(d)}
+rEq();addW();addC();
 const mname=()=>new Date($('mo').value+'-01T00:00:00').toLocaleDateString('ar-u-nu-latn',{month:'long',year:'numeric'});
 function head(p,title){const c=CO[p[1]];const loc=$('lc').value;
  return`<div class="sh" style="--b:${c.c}"><div><b>${c.n}</b><h2>${title}</h2></div><img src="${c.l}"></div><table class="mt"><tr><td>المشروع</td><td>${esc(p[0])}</td><td>المكان</td><td>${esc(loc)}</td></tr><tr><td>المقاول</td><td>${esc($('ct').value)}</td><td>التاريخ</td><td>${$('dt').value.split('-').reverse().join('/')}</td></tr><tr><td>المستخلص</td><td colspan="3">${esc($('mv').value)} — ${mname()}</td></tr></table>`}
 const sig=(a,b)=>`<div class="sg"><div>${a}<span>${esc($('se').value)||'………………'}</span></div><div>${b}<span>${esc($('pm').value)||'………………'}</span></div></div>`;
-function sheets(p){const c=CO[p[1]],S=[];const rows=[...document.querySelectorAll('.wr')].filter(r=>r.querySelector('.d').value.trim());
+function sheets(p){const c=CO[p[1]],S=[];const C=$('ty').value=='c';const rows=C?[]:[...document.querySelectorAll('.wr:not(.cr)')].filter(r=>r.querySelector('.d').value.trim());
+ const cr=C?[...document.querySelectorAll('.cr')].filter(r=>r.querySelector('.pl').value.trim()):[];
+ if(cr.length)S.push(`<div style="--b:${c.c}">${head(p,'موقف تنفيذي — خرسانة')}<table class="dt"><tr><th style="width:5%">م</th><th>مكان الصب</th><th style="width:18%">الإجهاد</th><th style="width:16%">الكمية (م³)</th><th style="width:16%">عدد المكعبات</th></tr>${cr.map((r,i)=>`<tr><td>${i+1}</td><td class="r">${esc(r.querySelector('.pl').value)}</td><td>${esc(r.querySelector('.st').value)}</td><td>${esc(r.querySelector('.qt').value)}</td><td>${esc(r.querySelector('.cu').value)}</td></tr>`).join('')}<tr style="font-weight:700;background:#f1f3f7"><td colspan="3">الإجمالي</td><td>${sm(cr,'.qt')}</td><td>${sm(cr,'.cu')}</td></tr></table>${sig('مهندس الموقع','مدير المشروع')}</div>`);
  if(rows.length)S.push(`<div style="--b:${c.c}">${head(p,'الموقف التنفيذي')}<table class="dt"><tr><th style="width:5%">م</th><th>الأعمال</th><th style="width:20%">المكان</th><th style="width:10%">النسبة</th><th style="width:18%">ملاحظات</th></tr>${rows.map((r,i)=>`<tr><td>${i+1}</td><td class="r">${esc(r.querySelector('.d').value).replace(/\n/g,'<br>')}</td><td>${esc(r.querySelector('.pl').value)}</td><td>${r.querySelector('.pc').value?r.querySelector('.pc').value+'%':''}</td><td>${esc(r.querySelector('.nt').value)}</td></tr>`).join('')}</table>${sig('مهندس الموقع','مدير المشروع')}</div>`);
  const D=days();if(D.length&&EN.length)S.push(`<div style="--b:${c.c}">${head(p,'بيان المعدات')}<table class="dt"><tr><th>اليوم</th><th>التاريخ</th>${EN.map(n=>`<th>${esc(n)}</th>`).join('')}</tr>${D.map(d=>`<tr style="${d.getDay()==5?'background:#cfd3da':''}"><td>${DN[d.getDay()]}</td><td>${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}</td>${EN.map(n=>{const v=M[ds(d)+'|'+n]||{};return`<td>${v.s=='1'?'يوم':v.s=='0.5'?'نصف يوم':v.s=='h'&&v.h?v.h+' س':''}</td>`}).join('')}</tr>`).join('')}<tr style="font-weight:700;background:#f1f3f7"><td colspan="2">الإجمالي</td>${EN.map(n=>`<td>${eqT(n)}</td>`).join('')}</tr></table>${sig('مهندس التنفيذ','مدير المشروع')}</div>`);
  document.querySelectorAll('.mm').forEach(m=>{const t=m.dataset.t,g=s=>esc(m.querySelector(s)?.value||'');
@@ -107,7 +114,7 @@ function sheets(p){const c=CO[p[1]],S=[];const rows=[...document.querySelectorAl
  return S}
 async function gen(share){const m=$('msg');m.textContent='';const p=PR[$('pr').value];
  if(!p||!$('ct').value.trim()||!$('mv').value){m.textContent='اختر المشروع، واكتب اسم المقاول، وحدد حركة المستخلص.';return}
- const S=sheets(p);if(!S.length){m.textContent='أضف عملاً واحداً على الأقل، أو بيان معدات، أو مذكرة.';return}
+ const S=sheets(p);if(!S.length){m.textContent='أضف بنداً واحداً على الأقل، أو بيان معدات، أو مذكرة.';return}
  m.style.color='var(--mut)';m.textContent='جاري إنشاء الـ PDF…';
  try{const st=$('stage');st.innerHTML=S.map(s=>`<div class="sheet" style="--b:${CO[p[1]].c}">${s}</div>`).join('');await document.fonts.ready;
   const pdf=new jspdf.jsPDF({unit:'mm',format:'a4'});let first=true;
