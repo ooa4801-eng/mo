@@ -51,7 +51,8 @@ button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid var(--line
 <div class="card"><h2>بيانات الموقف</h2><div class="g">
 <div class="w"><label>المشروع</label><select id="pr"></select></div>
 <div class="w" id="lw"><label id="ll">المكان / القطعة</label><input id="lc"></div>
-<div class="w"><label>المقاول / شركة الخرسانة</label><input id="ct" list="cl" placeholder="الاسم"><datalist id="cl"></datalist></div><div class="w"><label>نوع الموقف</label><select id="ty" onchange="tyc()"><option value="w">موقف أعمال</option><option value="c">موقف خرسانة (مكان الصب والإجهاد والكمية والمكعبات)</option></select></div>
+<div class="w"><label>المقاول / شركة الخرسانة</label><input id="ct" list="cl" placeholder="الاسم"><datalist id="cl"></datalist></div><div class="w"><label>البند (نوع الأعمال)</label><input id="bd" list="bl" placeholder="مثال: أعمال مباني"><datalist id="bl"><option>توريد خرسانة جاهزة<option>أعمال مباني<option>أعمال نجارة<option>أعمال سباكة<option>أعمال كهرباء<option>أعمال دهانات<option>أعمال جبسيوم بورد</datalist></div>
+<div class="w"><label>نوع الموقف</label><select id="ty" onchange="tyc()"><option value="w">موقف أعمال</option><option value="c">موقف خرسانة (مكان الصب والإجهاد والكمية والمكعبات)</option></select></div>
 <div><label>التاريخ</label><input type="date" id="dt"></div>
 <div><label>حركة المستخلص</label><select id="mv"><option value="">اختر الحركة</option><option>حركة 10</option><option>حركة 25</option></select></div>
 <div class="w"><label>شهر المستخلص</label><input type="month" id="mo"></div>
@@ -59,8 +60,8 @@ button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid var(--line
 <div class="card" id="wc"><h2>الأعمال المنفذة</h2><div id="ws"></div><button onclick="addW()">+ إضافة عمل</button></div>
 <div class="card" id="cc" style="display:none"><h2>بيان الصب</h2><div id="cs"></div><button onclick="addC()">+ إضافة صبة</button><p id="ctot" style="margin:10px 0 14px;font-weight:700"></p><h2 style="font-size:15px">المضخة والإضافات</h2><div id="xs"></div><button onclick="addX()">+ إضافة مضخة / مانع نفاذية</button><datalist id="sl"><option>250<option>300<option>350<option>400<option>450</datalist></div>
 <div class="card"><h2>بيان المعدات (اختياري)</h2><div class="g">
-<div><label>من</label><input type="date" id="ef" onchange="rEq()"></div><div><label>إلى</label><input type="date" id="et" onchange="rEq()"></div>
-<div class="w" style="display:flex;gap:8px"><input id="en" list="el" placeholder="اسم المعدة"><datalist id="el"><option>لودر 40<option>لودر 936<option>حفار<option>ونش<option>بوكلين<option>خلاطة خرسانة</datalist><button onclick="addE()" style="white-space:nowrap">إضافة معدة</button></div></div>
+<div><label>من</label><input type="date" id="ef" onchange="rEq()" oninput="rEq()"></div><div><label>إلى</label><input type="date" id="et" onchange="rEq()" oninput="rEq()"></div>
+<div class="w" style="display:flex;gap:8px"><input id="en" list="el" placeholder="اسم المعدة" onkeydown="if(event.key==='Enter'){event.preventDefault();addE()}"><datalist id="el"><option>لودر 40<option>لودر 936<option>حفار<option>ونش<option>بوكلين<option>خلاطة خرسانة</datalist><button onclick="addE()" style="white-space:nowrap">إضافة معدة</button></div></div>
 <div class="sc" id="eg" style="margin-top:10px"></div></div>
 <div class="card"><h2>مذكرات إضافة / خصم (تُرفق في نفس الـ PDF)</h2><div id="ms"></div>
 <div style="display:flex;gap:8px"><button onclick="addM('إضافة')">+ مذكرة إضافة</button><button onclick="addM('خصم')">+ مذكرة خصم</button></div></div>
@@ -91,7 +92,7 @@ function addM(t){const d=document.createElement('div');d.className='mm';d.datase
 function addE(){const v=$('en').value.trim();if(v&&!EN.includes(v)){EN.push(v);$('en').value='';rEq()}}
 function days(){const f=$('ef').value,t=$('et').value;if(!f||!t||t<f)return[];const a=[];let d=new Date(f+'T00:00:00');const e=new Date(t+'T00:00:00');while(d<=e&&a.length<62){a.push(new Date(d));d.setDate(d.getDate()+1)}return a}
 const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-function rEq(){const D=days();if(!D.length||!EN.length){$('eg').innerHTML='<p style="color:var(--mut);margin:0">حدد الفترة وأضف معدة ليظهر الجدول.</p>';return}
+function rEq(){const D=days();if(!D.length||!EN.length){const f=$('ef').value,u=$('et').value;$('eg').innerHTML='<p style="color:var(--mut);margin:0">'+(!EN.length?'اكتب اسم المعدة واضغط «إضافة معدة».':(!f||!u)?'حدد تاريخ البداية وتاريخ النهاية.':'تاريخ النهاية قبل البداية، صحّحه.')+'</p>';return}
  let h='<table class="eq"><tr><th>اليوم</th><th>التاريخ</th>'+EN.map((n,j)=>`<th>${esc(n)} <button style="min-height:22px;padding:0 6px" onclick="EN.splice(${j},1);rEq()">×</button></th>`).join('')+'</tr>';
  D.forEach(d=>{const f=d.getDay()==5;h+=`<tr class="${f?'fri':''}"><td>${DN[d.getDay()]}</td><td>${d.getDate()}/${d.getMonth()+1}</td>`+EN.map(n=>{const k=ds(d)+'|'+n,v=M[k]||{s:'',h:''};return`<td><select data-k="${esc(k)}">${[['','—'],['1','يوم'],['0.5','نصف يوم'],['h','ساعات']].map(o=>`<option value="${o[0]}"${v.s==o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><input type="number" min="0" step="0.5" data-h="${esc(k)}" value="${v.h}" style="display:${v.s=='h'?'block':'none'}"></td>`}).join('')+'</tr>'});
  h+='<tr><th colspan="2">الإجمالي</th>'+EN.map((n,j)=>`<th id="t${j}"></th>`).join('')+'</tr></table>';$('eg').innerHTML=h;tot()}
@@ -99,7 +100,7 @@ function tot(){EN.forEach((n,j)=>{const r=eqT(n);const e=$('t'+j);if(e)e.textCon
 function eqT(n){let d=0,h=0;Object.keys(M).forEach(k=>{if(k.split('|')[1]!=n)return;const v=M[k];if(v.s=='1')d+=1;else if(v.s=='0.5')d+=.5;else if(v.s=='h')h+=+v.h||0});return(d?d+' يوم':'')+(d&&h?' + ':'')+(h?h+' ساعة':'')||'—'}
 $('eg').addEventListener('change',e=>{const k=e.target.dataset.k;if(!k)return;M[k]={s:e.target.value,h:(M[k]||{}).h||''};e.target.nextElementSibling.style.display=e.target.value=='h'?'block':'none';tot()});
 $('eg').addEventListener('input',e=>{const k=e.target.dataset.h;if(!k)return;M[k]={s:'h',h:e.target.value};tot()});
-function tyc(){const c=$('ty').value=='c';$('wc').style.display=c?'none':'';$('cc').style.display=c?'':'none'}
+function tyc(){const c=$('ty').value=='c';if(c&&!$('bd').value.trim())$('bd').value='توريد خرسانة جاهزة';$('wc').style.display=c?'none':'';$('cc').style.display=c?'':'none'}
 const sm=(r,s)=>+r.reduce((a,x)=>a+(+x.querySelector(s).value||0),0).toFixed(2);
 function ctt(){const r=[...document.querySelectorAll('.cr')].filter(x=>x.querySelector('.st').value.trim()||x.querySelector('.qt').value||x.querySelector('.cu').value),g=gr(r);
  $('ctot').innerHTML=(g.length?'<div style="margin-bottom:4px">الكميات حسب الإجهاد:</div>'+g.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--line)"><span>إجهاد ${esc(x[0])}</span><span>${x[1]} م³</span></div>`).join(''):'')+`<div style="padding:6px 0;border-top:2px solid var(--line)">الإجمالي: ${sm(r,'.qt')} م³</div>`}
@@ -109,7 +110,7 @@ function addX(){const d=document.createElement('div');d.className='wr xr';d.inne
 rEq();addW();addC();
 const mname=()=>new Date($('mo').value+'-01T00:00:00').toLocaleDateString('ar-u-nu-latn',{month:'long',year:'numeric'});
 function head(p,title){const c=CO[p[1]];const loc=LOC();
- return`<div class="sh" style="--b:${c.c}"><div><b>${c.n}</b><h2>${title}</h2></div><img src="${c.l}"></div><table class="mt"><tr><td>المشروع</td><td>${esc(p[0])}</td><td>المكان</td><td>${esc(loc)}</td></tr><tr><td>المقاول</td><td>${esc($('ct').value)}</td><td>التاريخ</td><td>${$('dt').value.split('-').reverse().join('/')}</td></tr><tr><td>المستخلص</td><td colspan="3">${esc($('mv').value)} — ${mname()}</td></tr></table>`}
+ return`<div class="sh" style="--b:${c.c}"><div><b>${c.n}</b><h2>${title}</h2></div><img src="${c.l}"></div><table class="mt"><tr><td>المشروع</td><td>${esc(p[0])}</td><td>المكان</td><td>${esc(loc)}</td></tr><tr><td>المقاول</td><td>${esc($('ct').value)}</td><td>التاريخ</td><td>${$('dt').value.split('-').reverse().join('/')}</td></tr><tr><td>المستخلص</td><td>${esc($('mv').value)} — ${mname()}</td><td>البند</td><td>${esc($('bd').value)}</td></tr></table>`}
 const sig=(a,b)=>`<div class="sg"><div>${a}<span>${esc($('se').value)||'………………'}</span></div><div>${b}<span>${esc($('pm').value)||'………………'}</span></div></div>`;
 function sheets(p){const c=CO[p[1]],S=[];const C=$('ty').value=='c';const rows=C?[]:[...document.querySelectorAll('.wr:not(.cr):not(.xr)')].filter(r=>r.querySelector('.d').value.trim());
  const cr=C?[...document.querySelectorAll('.cr')].filter(r=>r.querySelector('.pl').value.trim()):[];
@@ -123,7 +124,7 @@ function sheets(p){const c=CO[p[1]],S=[];const C=$('ty').value=='c';const rows=C
  document.querySelectorAll('.mm').forEach(m=>{const t=m.dataset.t,g=s=>esc(m.querySelector(s)?.value||'');
   S.push(`<div style="--b:${c.c}"><div class="sh"><div><b>${c.n}</b><h2>مذكرة ${t}</h2></div><img src="${c.l}"></div><p><b>التاريخ:</b> ${$('dt').value.split('-').reverse().join('/')}</p><p><b>الموقع:</b> ${esc(p[0])} &nbsp;&nbsp; <b>القطعة:</b> ${esc(LOC())}</p><p><b>المقاول:</b> ${g('.mc')}</p><p><b>يرجى ${t} مبلغ</b> ${g('.ma')} <b>جنيه</b></p><p><b>فقط وقدره</b></p><div class="ln">${g('.mw')}</div><p><b>سبب ${t=='خصم'?'الخصم':'الإضافة'}:</b></p><div class="ln" style="min-height:130px">${g('.mr').replace(/\n/g,'<br>')}</div>${t=='خصم'?`<p><b>تخصم لصالح /</b> ${g('.mf')}</p>`:''}<div class="sg" style="margin-top:90px">${t=='خصم'?'<div>المقاول</div>':''}<div>مدير المشروع</div></div></div>`)});
  return S}
-async function gen(share){const m=$('msg');m.textContent='';const p=PR[$('pr').value];
+async function gen(share){const m=$('msg');m.textContent='';if($('en').value.trim())addE();const p=PR[$('pr').value];
  if(!p||!$('ct').value.trim()||!$('mv').value){m.textContent='اختر المشروع، واكتب اسم المقاول، وحدد حركة المستخلص.';return}
  const S=sheets(p);if(!S.length){m.textContent='أضف بنداً واحداً على الأقل، أو بيان معدات، أو مذكرة.';return}
  m.style.color='var(--mut)';m.textContent='جاري إنشاء الـ PDF…';
@@ -134,7 +135,7 @@ async function gen(share){const m=$('msg');m.textContent='';const p=PR[$('pr').v
   PG.forEach((c2,i)=>{if(i)pdf.addPage();pdf.addImage(c2.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297);
    pdf.setFont('helvetica','bold');pdf.setFontSize(10);pdf.setTextColor(40,50,70);pdf.setDrawColor(120,130,150);pdf.setLineWidth(.3);
    pdf.line(10,279,200,279);pdf.text('Document Control Department | MR/ABDELRAHMAN-NASSER',10,285,{align:'left'});pdf.text('Page '+(i+1)+' / '+PG.length,200,285,{align:'right'})});
-  const name=`الموقف التنفيذي - ${$('ct').value.trim()} - ${$('dt').value}.pdf`,blob=pdf.output('blob');
+  const san=s=>String(s).replace(/[\\/:*?"<>|]/g,' ').replace(/\s+/g,' ').trim(),it=san($('bd').value)||($('ty').value=='c'?'توريد خرسانة جاهزة':'موقف تنفيذي'),name=[san($('ct').value),it,san($('mv').value),$('mo').value?san(mname()):''].filter(Boolean).join(' - ')+'.pdf',blob=pdf.output('blob');
   try{const a=JSON.parse(localStorage.getItem('ct')||'[]'),c=$('ct').value.trim();if(!a.includes(c)){a.push(c);localStorage.setItem('ct',JSON.stringify(a))}}catch(e){}
   m.textContent='';let done=false;
   if(share&&navigator.canShare){const f=new File([blob],name,{type:'application/pdf'});if(navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:name});done=true}catch(e){if(e.name=='AbortError')return}}}
@@ -146,13 +147,13 @@ function nz(s){return String(s==null?'':s).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦
 function gr(rows){const o={};rows.forEach(r=>{const k=nz(r.querySelector('.st').value),a=o[k]||(o[k]={q:0,c:0});a.q+=+r.querySelector('.qt').value||0;a.c+=+r.querySelector('.cu').value||0});
  return Object.entries(o).sort((a,b)=>(parseFloat(a[0])||1e9)-(parseFloat(b[0])||1e9)||0).map(([k,v])=>[k,+v.q.toFixed(2),+v.c.toFixed(2)])}
 const gq=(r,s)=>(r.querySelector(s)||{}).value||'';
-function snap(){const g=s=>[...document.querySelectorAll(s)];return{v:1,pr:$('pr').value,lc:LOC(),ct:$('ct').value,dt:$('dt').value,mv:$('mv').value,mo:$('mo').value,ty:$('ty').value,se:$('se').value,pm:$('pm').value,ef:$('ef').value,et:$('et').value,EN:EN.slice(),M:M,
+function snap(){const g=s=>[...document.querySelectorAll(s)];return{v:1,pr:$('pr').value,lc:LOC(),ct:$('ct').value,bd:$('bd').value,dt:$('dt').value,mv:$('mv').value,mo:$('mo').value,ty:$('ty').value,se:$('se').value,pm:$('pm').value,ef:$('ef').value,et:$('et').value,EN:EN.slice(),M:M,
  w:g('.wr:not(.cr):not(.xr)').map(r=>['.d','.pl','.nt','.pc'].map(s=>gq(r,s))),c:g('.cr').map(r=>['.pl','.st','.qt','.cu'].map(s=>gq(r,s))),
  x:g('.xr').map(r=>['.xt','.xz','.xl','.xu','.xq'].map(s=>gq(r,s))),m:g('.mm').map(r=>[r.dataset.t].concat(['.mc','.ma','.mw','.mf','.mr'].map(s=>gq(r,s))))}}
-function BL(){const d=new Date().toISOString().slice(0,10);return{pr:'',lc:'',ct:'',dt:d,mv:'',mo:d.slice(0,7),ty:'w',se:'',pm:'',ef:'',et:'',EN:[],M:{},w:[],c:[],x:[],m:[]}}
+function BL(){const d=new Date().toISOString().slice(0,10);return{pr:'',lc:'',ct:'',bd:'',dt:d,mv:'',mo:d.slice(0,7),ty:'w',se:'',pm:'',ef:'',et:'',EN:[],M:{},w:[],c:[],x:[],m:[]}}
 function restore(s){$('pr').value=s.pr;$('pr').onchange();const l=$('lc');
  if(l.tagName=='SELECT'){const has=[...l.options].some(o=>o.value==s.lc&&o.value!='__o');if(has||!s.lc)l.value=has?s.lc:l.options[0].value;else{l.value='__o';lcc();$('lco').value=s.lc}}else l.value=s.lc;
- $('ct').value=s.ct;$('dt').value=s.dt;$('mv').value=s.mv;$('mo').value=s.mo;$('ty').value=s.ty;tyc();$('se').value=s.se;$('pm').value=s.pm;
+ $('ct').value=s.ct;$('bd').value=s.bd||'';$('dt').value=s.dt;$('mv').value=s.mv;$('mo').value=s.mo;$('ty').value=s.ty;tyc();$('se').value=s.se;$('pm').value=s.pm;
  ['ws','cs','xs','ms'].forEach(i=>$(i).innerHTML='');
  s.w.forEach(a=>{addW();const r=$('ws').lastChild;['.d','.pl','.nt','.pc'].forEach((q,i)=>r.querySelector(q).value=a[i])});if(!s.w.length)addW();
  s.c.forEach(a=>{addC();const r=$('cs').lastChild;['.pl','.st','.qt','.cu'].forEach((q,i)=>r.querySelector(q).value=a[i])});if(!s.c.length)addC();
